@@ -26,14 +26,26 @@ app.use(function numberMiddleware(req, res, next) {
   {
     if (urlObj.query["setBuildNumber"])
     {
-      redisclient.set(path,urlObj.query["setBuildNumber"]);
+      if (isNaN(urlObj.query["setBuildNumber"]))
+      {
+          res.writeHead(500, {'Content-Type': 'text/plain'});
+          res.end("NOT A NUMBER");
+          return;
+      } else
+      {
+        redisclient.set(path,urlObj.query["setBuildNumber"]);
+      }
     }
     redisclient.get(path, function(err, reply){
       if (err)
       {
         redisclient.set(path,"-1");
       }
-      redisclient.incr(path);
+      if (urlObj.search != "?currentBuildNumber")
+      {
+        console.log('incrementing build number:' + req.path)
+        redisclient.incr(path);
+      }
       redisclient.get(path, function(err, reply){
         if (err)
         {
